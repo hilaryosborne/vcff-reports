@@ -1,0 +1,5 @@
+.field-selection { }
+.field-selection .field-list { position:relative;width:50%;box-sizing:border-box;float:left;padding:0px 55px 0px 0px;  }
+.field-selection .field-list select[multiple] { height:180px !important; }
+.field-selection .field-list .toolbar { position:absolute;top:40px;right:15px;width:30px; }
+.field-selection .field-list .toolbar button { display:inline-block;width:30px;height:30px;margin-bottom:10px; }

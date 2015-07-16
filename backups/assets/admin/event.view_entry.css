@@ -1,0 +1,8 @@
+.entry-data { background:#FFF;border:1px solid #e5e5e5;box-shadow:0 1px 1px rgba(0,0,0,.04); }
+.entry-data .entry-field { background:#FFF; }
+.entry-data .entry-field .entry-label { padding:10px;background:#EAF2FA;font-weight:bold; }
+.entry-data .entry-field .entry-value { padding:10px 10px 20px 10px; }
+
+.entry-context { background:#FFF;border:1px solid #e5e5e5;box-shadow:0 1px 1px rgba(0,0,0,.04);padding:15px; }
+
+.entry-details { background:#FFF;border:1px solid #e5e5e5;box-shadow:0 1px 1px rgba(0,0,0,.04);padding:15px; }

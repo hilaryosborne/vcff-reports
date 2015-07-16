@@ -1,0 +1,7 @@
+.container-header { margin-right:20px !important;padding:25px 0px 45px 0px; }
+.container-header h2 { text-transform:uppercase; }
+
+.container-contents { background:#FFF;padding:25px 25px 35px 0px;margin-right:20px !important; }
+.container-contents .row-top { margin-bottom:25px; }
+.container-contents .col-select { width:24px; }
+.container-contents .tag { display:inline-block;background:#CCC;padding:2px 8px;margin-right:8px; }

@@ -1,0 +1,20 @@
+.vcff-table {}
+.vcff-table { background:#FFF; }
+.vcff-table td, th { padding:10px; }
+
+.form-item { margin-bottom:60px; }
+.form-item thead { background:#FFF; }
+.form-item tfoot { background:#FFF; }
+.form-item th { font-weight:bold; }
+.form-item th span { display:block;padding:7px 7px 8px 10px; }
+.form-item th.column-cb { width:35px;text-align:center; }
+.form-item th.check-column { text-align:center; }
+.form-item th.column-title {}
+.form-item th.column-count { width:25%; }
+.form-item th.column-last { width:25%; }
+
+.vcff-reports-index .vcff-field-group { padding:0px;border:1px #CCC solid;margin-top:25px; }
+.vcff-reports-index .vcff-field-group .vcff-field-header { padding-left:10px;padding-right:10px; }
+.vcff-reports-index .vcff-field-group .vcff-field-header h4 { margin:0px;padding:5px 10px;position:relative;top:-9px;margin-top:-9px;display:inline-block;background:#f1f1f1;font-weight:bold; }
+.vcff-reports-index .vcff-field-group .vcff-field-header a.help-lnk { float:right;position:relative;top:-8px;margin-top:-8px;display:inline-block;padding:5px 10px;background:#f1f1f1;font-weight:bold; }
+.vcff-reports-index .vcff-field-group .vcff-field-contents { padding:5px 15px 15px 15px; }
