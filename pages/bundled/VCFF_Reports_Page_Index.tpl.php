@@ -13,6 +13,7 @@
         
         <div class="col-md-9">
             <?php echo $this->Get_Alerts_HTML(); ?>
+            <?php if ($reports && is_array($reports)): ?>
             <?php foreach ($reports as $k => $report): ?>
             <div class="form-item vcff-field-group">
                 <div class="vcff-field-header clearfix">
@@ -46,6 +47,7 @@
                             </tfoot>
                             <tbody id="the-list">
                                 <?php $i=0; ?>
+                                <?php if ($report['report_list'] && is_array($report['report_list'])): ?>
                                 <?php foreach ($report['report_list'] as $_k => $report_item): ?>
                                 <tr class="report-item <?php if ($i % 2 == 0): ?>alternate<?php endif; ?> iedit level-0">
                                     <th scope="row" class="check-column">
@@ -71,6 +73,7 @@
                                 </tr>
                                 <?php $i++; ?>
                                 <?php endforeach; ?>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                         <?php do_action('vcff_reports_index_item_post_table',$this,$report); ?>
@@ -86,6 +89,7 @@
                 </div>
             </div>
             <?php endforeach; ?>
+            <?php endif; ?>
         </div>
         
         <div class="col-md-3">

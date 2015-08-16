@@ -18,6 +18,26 @@ class VCFF_Reports_Helper_Entries {
         return $this;
     }
     
+    public function Get_Status() {
+        // The list of flags
+        $flags = array(
+            'complete' => array(
+                'code' => 'complete',
+                'name' => 'Complete',
+                //'_update' => array($this,'_Status_Make_Complete'),
+            ),
+            'cool' => array(
+                'code' => 'cool',
+                'name' => 'Cool',
+                //'_update' => array($this,'_Status_Make_Complete'),
+            )
+        );
+        // Apply any filter for adding to the flag list
+        $status = apply_filters('vcff_reports_status',$status,$this);
+        // Return the flag list
+        return $flags;
+    }
+    
     public function Last() {
         // Create the database table
 		global $wpdb; 
@@ -47,7 +67,33 @@ class VCFF_Reports_Helper_Entries {
         );
     }
     
-    public function Create() {
+    public function Update($entry) {
+        // Create a new entries sql helper
+        $sql_entries_helper = new VCFF_Reports_Helper_SQL_Entries();
+        // Add the entry
+        $sql_entries_helper
+            ->Add_Entry($entry['store_entry']);
+        // If there is meta to store
+        if (isset($entry['store_fields']) && is_array($entry['store_fields'])) {
+            // Loop through each field
+            foreach ($entry['store_fields'] as $machine_code => $field_data) { 
+                // Add the entry
+                $sql_entries_helper->Add_Field_Item($field_data);
+            }
+        }
+        // If there is meta to store
+        if (isset($entry['store_meta']) && is_array($entry['store_meta'])) {
+            // Loop through each field
+            foreach ($entry['store_meta'] as $meta_code => $meta_data) {
+                // Add the entry
+                $sql_entries_helper->Add_Meta_Item($meta_data);
+            }
+        }
+        // Store the changes
+        $sql_entries_helper->Store();
+    }
+    
+    public function Create($extra_meta=array()) {
         // Retrieve the form instance
         $form_instance = $this->form_instance;
         // Retrieve the form instance
@@ -62,15 +108,33 @@ class VCFF_Reports_Helper_Entries {
                 'event_id' => $action_instance->Get_ID(),
                 'event_code' => $action_instance->Get_Code(),
                 'source_url' => 'http://something',
-            ))
-            ->Add_Meta_Item('submission_summary','Woof');
+            ));
+        // If extra meta information was supplied
+        if ($extra_meta && is_array($extra_meta)) {
+            // Loop through each submission meta item
+            foreach ($extra_meta as $meta_key => $meta_data) {
+                // Add the submission meta item
+                $entries_sql_helper
+                    ->Add_Meta_Item(array(
+                        'meta_code' => $meta_data['meta_code'],
+                        'meta_value' => $meta_data['meta_value'],
+                        'meta_label' => $meta_data['meta_label'],
+                    ));
+            }
+        }
         // Return the form fields
         $form_fields = $form_instance->fields;
         // Loop through each form field
-        foreach ($form_fields as $machine_code => $field_instance) {
+        foreach ($form_fields as $machine_code => $field_instance) { 
             // Add the entry
             $entries_sql_helper
-                ->Add_Field_Item($machine_code,$field_instance->Get_RAW_Value());
+                ->Add_Field_Item(array(
+                    'machine_code' => $machine_code,
+                    'field_label' => $field_instance->Get_Label(),
+                    'field_value' => $field_instance->Get_Value(),
+                    'field_value_html' => $field_instance->Get_HTML_Value(false),
+                    'field_value_text' => $field_instance->Get_TEXT_Value(false),
+                ));
         }
         // Store and retrieve the stored entry
         $entry = $entries_sql_helper->Store();

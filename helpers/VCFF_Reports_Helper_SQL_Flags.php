@@ -92,9 +92,13 @@ class VCFF_Reports_Helper_SQL_Flags {
             // Attempt to store the entry data
             $result = $wpdb->update($entry_flags_table, $store_flag, array('uuid' => $existing->uuid));
         } // Otherwise attempt to insert a new record 
-        else { $result = $wpdb->insert($entry_flags_table,$store_flag); }
+        else { $result = $wpdb->insert($entry_flags_table,$store_flag); } 
         // If the insert failed
         if ($result === false) { die('Flag value failed to insert'); }
+        // Store the result id
+        $this->store_flag['id'] = $wpdb->insert_id;
+        // Return the inserted id
+        return $this->store_flag;
     }
     
     /**

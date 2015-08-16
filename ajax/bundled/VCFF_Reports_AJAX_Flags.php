@@ -9,11 +9,11 @@ class VCFF_Reports_AJAX_Flags {
     
     public function _Process() {
         // Retrieve the flag action
-        $flag_action = $_GET['flag_action'];
+        $flag_action = $_POST['flag_action'];
         // Retrieve the flag action
-        $flag_code = $_GET['flag_code'];
+        $flag_code = $_POST['flag_code'];
         // Retrieve the flag action
-        $flag_entry = $_GET['flag_entry'];
+        $flag_entry = $_POST['flag_entry'];
         // If no flag action was provided
         if (!$flag_action || !$flag_code || !$flag_entry) {
             // Encode the meta fields and return
@@ -53,7 +53,7 @@ class VCFF_Reports_AJAX_Flags {
             // Call the user function
             $result = call_user_func_array($flag_data['entry_flag'],array($flag_entry));
         } // Otherwise just simply add a flag to the entry
-        else { $flag_helper->Update_Flag($flag_code,$flag_entry,array()); }
+        else { $result = $flag_helper->Update_Flag($flag_code,$flag_entry,array()); }
         // If the result was successfull
         if (is_bool($result) && $result == true) {
             // Encode the meta fields and return

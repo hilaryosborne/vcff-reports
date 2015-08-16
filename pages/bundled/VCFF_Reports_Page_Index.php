@@ -25,21 +25,21 @@ class VCFF_Reports_Page_Index extends VCFF_Page {
         foreach ($results as $k => $row) {
             // Retrieve the form uuid
             $form_uuid = vcff_get_uuid_by_form($row->ID);
-            // Retrieve a new form instance helper
-            $form_instance_helper = new VCFF_Forms_Helper_Instance();
-            // Generate a new form instance
-            $form_instance = $form_instance_helper
-                ->Set_Form_UUID($form_uuid)
-                ->Generate(); 
+            // PREPARE PHASE
+            $form_prepare_helper = new VCFF_Forms_Helper_Prepare();
+            // Get the form instance
+            $form_instance = $form_prepare_helper
+                ->Get_Form(array(
+                    'uuid' => $form_uuid,
+                ));
             // If the form instance could not be created
             if (!$form_instance) { die('could not create form instance'); }
-            // Complete setting up the form instance
-            $form_instance_helper
-                ->Add_Fields()
-                ->Add_Containers()
-                ->Add_Meta()
-                ->Add_Supports()
-                ->Add_Events();
+            // POPULATE PHASE
+            $form_populate_helper = new VCFF_Forms_Helper_Populate();
+            // Run the populate helper
+            $form_populate_helper
+                ->Set_Form_Instance($form_instance)
+                ->Populate(array());
             // Retrieve the form's action items
             $form_events = $form_instance->events;
             // If no events were found, return out

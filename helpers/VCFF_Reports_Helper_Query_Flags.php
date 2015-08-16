@@ -2,7 +2,7 @@
 
 class VCFF_Reports_Helper_Query_Flags {
     
-    public $code;
+    public $report_id;
     
     public $with;
     
@@ -12,9 +12,9 @@ class VCFF_Reports_Helper_Query_Flags {
     
     public $limit;
     
-    public function Report($code) {
+    public function Report($report_id) {
     
-        $this->code = $code;
+        $this->report_id = $report_id;
         
         return $this;
     }
@@ -55,11 +55,11 @@ class VCFF_Reports_Helper_Query_Flags {
         // If we are not wanting to just count
         if (!$count) {
             // Create a regular select statement
-            $sql = "SELECT * FROM $entry_table AS Entry WHERE Entry.event_code = %s ";
+            $sql = "SELECT * FROM $entry_table AS Entry WHERE Entry.event_id = %s ";
         } // Otherwise we want a count of the results
-        else { $sql = "SELECT COUNT(*) FROM $entry_table AS Entry WHERE Entry.event_code = %s "; }
+        else { $sql = "SELECT COUNT(*) FROM $entry_table AS Entry WHERE Entry.event_id = %s "; }
         // Create the prepare
-        $prepare = array($this->code);
+        $prepare = array($this->report_id);
         // Retrieve the with condition results
         $with_condition = $this->_Get_With_SQL();
         // If there are with condition results
@@ -97,11 +97,11 @@ class VCFF_Reports_Helper_Query_Flags {
             $sql .= $limit['sql'];
         }
         // Create the database table
-		global $wpdb; 
+		global $wpdb;
         // If we are not just counting the results
         if (!$count) {
             // Retrieve the results
-            $entries = $wpdb->get_results($wpdb->prepare($sql,$prepare));
+            return $wpdb->get_results($wpdb->prepare($sql,$prepare));
         } // Otherwise if we just want a count 
         else { 
             // Retrieve the results
@@ -185,7 +185,7 @@ class VCFF_Reports_Helper_Query_Flags {
         // The sql related vars
         $sql = ' ORDER BY '; $prepare = array();
         // The multiple flag
-        $multiple = false;
+        $multiple = false; 
         // Loop through each flag
         foreach ($order_columns as $k => $v) {
             // Default variables
@@ -202,7 +202,7 @@ class VCFF_Reports_Helper_Query_Flags {
             $sql .= $multiple ? ", Entry.".$column." ".$direction : " Entry.".$column." ".$direction;
             // Multiple flag
             $multiple = true;
-        }
+        } 
         // Return the resulting string
         return array(
             'sql' => $sql,

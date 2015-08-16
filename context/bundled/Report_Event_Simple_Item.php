@@ -118,7 +118,18 @@ class Report_Event_Simple_Item extends VCFF_Event_Item {
         $reports_entry_helper
             ->Set_Form_Instance($form_instance)
             ->Set_Action_Instance($action_instance)
-            ->Create();
+            ->Create(array(
+                'form_data' => array(
+                    'meta_code' => 'form_data',
+                    'meta_value' => $form_instance->form_data,
+                    'meta_label' => 'Raw Form Data'
+                ),
+                'form_content' => array(
+                    'meta_code' => 'form_content',
+                    'meta_value' => $form_instance->form_content,
+                    'meta_label' => 'Raw Form Contents'
+                )
+            ));
     }
     
 }

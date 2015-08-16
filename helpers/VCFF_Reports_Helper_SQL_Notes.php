@@ -34,7 +34,7 @@ class VCFF_Reports_Helper_SQL_Notes {
 			uuid varchar(255) NOT NULL,
             entry_uuid varchar(255) NOT NULL,
             form_uuid varchar(255) NOT NULL,
-            note_data varchar(1) NOT NULL,
+            note_data longtext NULL,
             time_created bigint(20) UNSIGNED NOT NULL,
             time_modified bigint(20) UNSIGNED NULL,
             date_created date NOT NULL,
@@ -53,11 +53,10 @@ class VCFF_Reports_Helper_SQL_Notes {
     public function Add_Note($data) {
         // Populate the entry data
         $this->store_note = array(
-            'id' => isset($data['id']) ? $data['id'] : null,
             'uuid' => isset($data['uuid']) ? $data['uuid'] : uniqid(),
             'entry_uuid' => $data['entry_uuid'],
             'form_uuid' => $data['form_uuid'],
-            'note_data' => base64_encode(json_encode($data['note_data'])),
+            'note_data' => $data['note_data'],
             'time_created' => isset($data['time_created']) ? $data['time_created'] : time(),
             'time_modified' => isset($data['time_modified']) ? $data['time_modified'] : time(),
             'date_created' => isset($data['date_created']) ? $data['date_created'] : date("Y-m-d H:i:s"),
@@ -84,13 +83,17 @@ class VCFF_Reports_Helper_SQL_Notes {
         // Check for an existing record
         $existing = $wpdb->get_row($wpdb->prepare("SELECT uuid FROM $entry_notes_table WHERE form_uuid = %s AND entry_uuid = %s AND uuid = %s", $store_note['form_uuid'], $store_note['uuid'], $store_note['uuid']));
         // If a record was returned
-        if ($existing) {
+        if ($existing) { die('existing');
             // Attempt to store the entry data
             $result = $wpdb->update($entry_notes_table, $store_note, array('uuid' => $existing->uuid));
         } // Otherwise attempt to insert a new record 
-        else { $result = $wpdb->insert($entry_notes_table,$store_note); }
+        else { $result = $wpdb->insert($entry_notes_table, $store_note); }
         // If the insert failed
         if ($result === false) { die('Note value failed to insert'); }
+        // Store the result id
+        $this->store_note['id'] = $wpdb->insert_id; 
+        // Return the inserted id
+        return $this->store_note;
     }
     
     /**

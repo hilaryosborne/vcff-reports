@@ -101,6 +101,7 @@ class VCFF_Reports_Helper_SQL_Entries {
             form_uuid varchar(255) NOT NULL,
             meta_code varchar(255) NOT NULL,
             is_encoded varchar(1) NOT NULL,
+            meta_label longtext NULL,
             meta_value longtext NULL,
 			PRIMARY KEY (id)
 		) ".$charset_collate.";"; 
@@ -122,7 +123,10 @@ class VCFF_Reports_Helper_SQL_Entries {
             form_uuid varchar(255) NOT NULL,
             field_machine_code varchar(255) NOT NULL,
             is_encoded varchar(1) NOT NULL,
+            field_label longtext NULL,
             field_value longtext NULL,
+            field_value_html longtext NULL,
+            field_value_text longtext NULL,
 			PRIMARY KEY (id)
 		) ".$charset_collate.";"; 
         // Use the dbdelta to compare and upgrade
@@ -155,17 +159,27 @@ class VCFF_Reports_Helper_SQL_Entries {
         // Return for chaining
         return $this;
     }
-    
-    public function Add_Meta_Item($meta_code,$meta_value) {
+
+    public function Add_Meta_Item($data) {
         // Add to the store fields
-        $this->store_meta[$meta_code] = $meta_value;
+        $this->store_meta[$data['meta_code']] = array(
+            'meta_code' => $data['meta_code'],
+            'meta_value' => $data['meta_value'],
+            'meta_label' => $data['meta_label'],
+        );
         // Return for chaining
         return $this;
     }
     
-    public function Add_Field_Item($machine_code,$value) {
+    public function Add_Field_Item($data) {
         // Add to the store fields
-        $this->store_fields[$machine_code] = $value;
+        $this->store_fields[$data['machine_code']] = array(
+            'machine_code' => $data['machine_code'],
+            'field_label' => $data['field_label'],
+            'field_value' => $data['field_value'],
+            'field_value_html' => $data['field_value_html'],
+            'field_value_text' => $data['field_value_text'],
+        ); 
         // Return for chaining
         return $this;
     }
@@ -188,6 +202,8 @@ class VCFF_Reports_Helper_SQL_Entries {
         $entries_table = $this->Get_Entry_Table();
         // Submission table name (including wp prefix)
         $entry_fields_table = $this->Get_Entry_Field_Table(); 
+        // Submission table name (including wp prefix)
+        $entry_meta_table = $this->Get_Entry_Meta_Table(); 
         // Retrieve the storage data
         $store_data = $this->store_entry;
         // If there is an id
@@ -204,14 +220,20 @@ class VCFF_Reports_Helper_SQL_Entries {
                 $result = $wpdb->delete($entry_fields_table, array('entry_uuid' => $store_data['uuid']));
                 // If the insert failed
                 if ($result === false) { die('Record failed to purge entry values'); }
+                // Delete all of the associated fields
+                $result = $wpdb->delete($entry_meta_table, array('entry_uuid' => $store_data['uuid']));
+                // If the insert failed
+                if ($result === false) { die('Record failed to purge entry values'); }
             }
-        }   
-        // Attempt to store the entry data
-        $result = $wpdb->insert($entries_table,$store_data);
-        // If the insert failed
-        if ($result === false) { die('Record failed to insert'); }
-        // Store the result id
-        $this->store_entry['id'] = $wpdb->insert_id;
+        } // Otherwise if we are inserting 
+        else {
+            // Attempt to store the entry data
+            $result = $wpdb->insert($entries_table,$store_data);
+            // If the insert failed
+            if ($result === false) { die('Record failed to insert'); }
+            // Store the result id
+            $this->store_entry['id'] = $wpdb->insert_id;
+        }
         // Return the inserted id
         return $store_data;
     }
@@ -228,40 +250,28 @@ class VCFF_Reports_Helper_SQL_Entries {
         // If there are no store fields, return out
         if (!$store_meta || !is_array($store_meta)) { return array(); }
         // Loop through each field to store
-        foreach ($store_meta as $meta_code => $meta_value) {
+        foreach ($store_meta as $meta_code => $meta_data) {
             // Determine if the value will be encoded
-            $is_encoded = is_array($meta_value) || is_object($meta_value) ? true : false;
+            $is_encoded = is_array($meta_data['meta_value']) || is_object($meta_data['meta_value']) ? true : false;
             // Calculate the store value
-            $store_value = $is_encoded ? base64_encode(json_encode($meta_value)) : $meta_value ;
+            $store_value = $is_encoded ? base64_encode(json_encode($meta_data['meta_value'])) : $meta_data['meta_value'] ;
             // If there is no value, continue on
             if ($store_value == '') { continue; }
-            // Check for an existing record
-            $existing = $wpdb->get_row($wpdb->prepare("SELECT id FROM $entry_meta_table WHERE form_uuid = %s AND entry_uuid = %s AND meta_code = %s", $store_data['form_uuid'], $store_data['uuid'], $meta_code));
-            // If a record was returned
-            if ($existing) {
-                // Attempt to store the entry data
-                $result = $wpdb->update($entry_meta_table,array(
-                    'is_encoded' => $is_encoded ? 'y' : '',
-                    'meta_code' => $meta_code,
-                    'meta_value' => $meta_value,
-                ), array('id' => $existing->id));
-            } // Otherwise attempt to insert a new record 
-            else {
-                // Attempt to store the entry data
-                $result = $wpdb->insert($entry_meta_table,array(
-                    'entry_uuid' => $entry_data['uuid'],
-                    'form_uuid' => $entry_data['form_uuid'],
-                    'is_encoded' => $is_encoded ? 'y' : '',
-                    'meta_code' => $meta_code,
-                    'meta_value' => $meta_value,
-                ));
-            }
+            // Attempt to store the entry data
+            $result = $wpdb->insert($entry_meta_table,array(
+                'entry_uuid' => $entry_data['uuid'],
+                'form_uuid' => $entry_data['form_uuid'],
+                'is_encoded' => $is_encoded ? 'y' : '',
+                'meta_code' => $meta_data['meta_code'],
+                'meta_label' => $meta_data['meta_label'],
+                'meta_value' => $store_value,
+            ));
             // If the insert failed
             if ($result === false) { die('Field value failed to insert'); }
         }
     }
     
-    protected function _Store_Fields() {
+    protected function _Store_Fields() { 
         // Create the database table
 		global $wpdb; 
         // Retrieve the entry data
@@ -273,11 +283,11 @@ class VCFF_Reports_Helper_SQL_Entries {
         // If there are no store fields, return out
         if (!$store_fields || !is_array($store_fields)) { return array(); }
         // Loop through each field to store
-        foreach ($store_fields as $machine_code => $value) {
+        foreach ($store_fields as $machine_code => $field_data) {
             // Determine if the value will be encoded
-            $is_encoded = is_array($value) || is_object($value) ? true : false;
+            $is_encoded = is_array($field_data['field_value']) || is_object($field_data['field_value']) ? true : false;
             // Calculate the store value
-            $store_value = $is_encoded ? base64_encode(json_encode($value)) : $value ;
+            $store_value = $is_encoded ? base64_encode(json_encode($field_data['field_value'])) : $field_data['field_value'] ;
             // If there is no value, continue on
             if ($store_value == '') { continue; }
             // Attempt to store the entry data
@@ -286,7 +296,10 @@ class VCFF_Reports_Helper_SQL_Entries {
                 'form_uuid' => $entry_data['form_uuid'],
                 'is_encoded' => $is_encoded ? 'y' : '',
                 'field_machine_code' => $machine_code,
+                'field_label' => $field_data['field_label'],
                 'field_value' => $store_value,
+                'field_value_html' => $field_data['field_value_html'],
+                'field_value_text' => $field_data['field_value_text'],
             ));
             // If the insert failed
             if ($result === false) { die('Field value failed to insert'); }
@@ -399,9 +412,18 @@ class VCFF_Reports_Helper_SQL_Entries {
             // Retrieve the encoded flag
             $is_encoded = $data->is_encoded;
             // Retrieve the meta value
-            $value = strtolower($is_encoded) == 'y' ? json_encode(base64_decode($data->field_value),true) : $data->field_value;
+            $value = strtolower($is_encoded) == 'y' ? json_decode(base64_decode($data->field_value),true) : $data->field_value;
             // Populate the store fields
-            $this->store_fields[$machine_code] = $value;
+            $this->store_fields[$machine_code] = array(
+                'id' => $data->id,
+                'entry_uuid' => $data->entry_uuid,
+                'form_uuid' => $data->form_uuid,
+                'machine_code' => $machine_code,
+                'field_label' => $data->field_label,
+                'field_value' => $value,
+                'field_value_html' => $data->field_value_html,
+                'field_value_text' => $data->field_value_text
+            );
         }
     }
     
@@ -423,9 +445,16 @@ class VCFF_Reports_Helper_SQL_Entries {
             // Retrieve the encoded flag
             $is_encoded = $data->is_encoded;
             // Retrieve the meta value
-            $meta_value = strtolower($is_encoded) == 'y' ? json_encode(base64_decode($data->meta_value,true)) : $data->meta_value;
+            $meta_value = strtolower($is_encoded) == 'y' ? json_decode(base64_decode($data->meta_value),true) : $data->meta_value;
             // Populate the meta fields
-            $this->store_meta[$meta_code] = $meta_value;
+            $this->store_meta[$meta_code] = array(
+                'id' => $data->id,
+                'entry_uuid' => $data->entry_uuid,
+                'form_uuid' => $data->form_uuid,
+                'meta_code' => $data->meta_code,
+                'meta_value' => $meta_value,
+                'meta_label' => $data->meta_label,
+            );
         }
     }
     
